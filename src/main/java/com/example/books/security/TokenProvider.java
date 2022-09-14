@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,6 +20,16 @@ import java.util.stream.Collectors;
 
 @Component
 public class TokenProvider {
+
+  @Value("${jwt-config.signing-key}")
+  private String SIGNING_KEY;
+
+  @Value("${jwt-config.authorities-key}")
+  private String AUTHORITIES_KEY;
+
+  @Value("${jwt-config.access-token-validity-millisecond}")
+  private long ACCESS_TOKEN_VALIDITY_SECONDS;
+
   public String getUsernameFromToken(String token) {
     return getClaimFromToken(token, Claims::getSubject);
   }
@@ -34,7 +45,7 @@ public class TokenProvider {
 
   private Claims getAllClaimsFromToken(String token) {
     return Jwts.parser()
-        .setSigningKey(SecurityJwtConstants.SIGNING_KEY)
+        .setSigningKey(SIGNING_KEY)
         .parseClaimsJws(token)
         .getBody();
   }
@@ -50,11 +61,11 @@ public class TokenProvider {
         .collect(Collectors.joining(","));
     return Jwts.builder()
         .setSubject(authentication.getName())
-        .claim(SecurityJwtConstants.AUTHORITIES_KEY, authorities)
-        .signWith(SignatureAlgorithm.HS256, SecurityJwtConstants.SIGNING_KEY)
+        .claim(AUTHORITIES_KEY, authorities)
+        .signWith(SignatureAlgorithm.HS256, SIGNING_KEY)
         .setIssuedAt(new Date(System.currentTimeMillis()))
         .setExpiration(new Date(
-            System.currentTimeMillis() + SecurityJwtConstants.ACCESS_TOKEN_VALIDITY_SECONDS * 1000)
+            System.currentTimeMillis() + ACCESS_TOKEN_VALIDITY_SECONDS * 1000)
         )
         .compact();
   }
@@ -69,11 +80,11 @@ public class TokenProvider {
       final Authentication existingAuthentication,
       final UserDetails userDetails
   ) {
-    final JwtParser jwtParser = Jwts.parser().setSigningKey(SecurityJwtConstants.SIGNING_KEY);
+    final JwtParser jwtParser = Jwts.parser().setSigningKey(SIGNING_KEY);
     final Jws<Claims> claimsJws = jwtParser.parseClaimsJws(token);
     final Claims claims = claimsJws.getBody();
     final Collection<? extends  GrantedAuthority> authorities =
-        Arrays.stream(claims.get(SecurityJwtConstants.AUTHORITIES_KEY).toString().split(","))
+        Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
         .map(SimpleGrantedAuthority::new)
         .collect(Collectors.toList());
     return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);

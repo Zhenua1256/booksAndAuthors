@@ -15,6 +15,9 @@
   <description>books</description>
   <properties>
     <java.version>17</java.version>
+    <io.jsonwebtoken.version>0.9.1</io.jsonwebtoken.version>
+    <jakarta.validation.version>3.0.2</jakarta.validation.version>
+    <org.springdoc.version>1.6.11</org.springdoc.version>
   </properties>
   <dependencies>
     <dependency>
@@ -32,7 +35,7 @@
     <dependency>
       <groupId>jakarta.validation</groupId>
       <artifactId>jakarta.validation-api</artifactId>
-      <version>3.0.2</version>
+      <version>${jakarta.validation.version}</version>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
@@ -61,12 +64,12 @@
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-ui</artifactId>
-      <version>1.6.11</version>
+      <version>${org.springdoc.version}</version>
     </dependency>
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
       <artifactId>jjwt</artifactId>
-      <version>0.9.0</version>
+      <version>${io.jsonwebtoken.version}</version>
     </dependency>
   </dependencies>
 

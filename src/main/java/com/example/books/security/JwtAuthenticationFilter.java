@@ -17,6 +17,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+  public static final String TOKEN_PREFIX = "Bearer";
+  public static final String HEADER_STRING = "Authorization";
+
   @Autowired
   private TokenProvider tokenProvider;
 
@@ -30,19 +34,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       HttpServletResponse httpServletResponse,
       FilterChain filterChain
   ) throws ServletException, IOException {
-    String header = httpServletRequest.getHeader(SecurityJwtConstants.HEADER_STRING);
+    String header = httpServletRequest.getHeader(HEADER_STRING);
     String userName = null;
     String authToken = null;
-    if (header != null && header.startsWith(SecurityJwtConstants.TOKEN_PREFIX)) {
-      authToken = header.replace(SecurityJwtConstants.TOKEN_PREFIX, "");
+    if (header != null && header.startsWith(TOKEN_PREFIX)) {
+      authToken = header.replace(TOKEN_PREFIX, "");
       try {
         userName = tokenProvider.getUsernameFromToken(authToken);
       } catch (IllegalArgumentException e) {
-        logger.error("An error occurred during getting username from token.", e);
+        logger.warn("An error occurred during getting username from token.", e);
       } catch (ExpiredJwtException e) {
         logger.warn("The token is expired and not valid anymore.", e);
       } catch (SignatureException e) {
-        logger.error("Authentication failed. Username and password not valid.", e);
+        logger.warn("Authentication failed. Username and password not valid.", e);
       }
     } else {
       logger.warn("Couldn't find bearer string, will ignore the header.");
@@ -59,7 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 userDetails
             );
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
-        logger.info("Authenticated user " + userName + ", setting security context.");
+        logger.debug("Authenticated user " + userName + ", setting security context.");
         SecurityContextHolder.getContext().setAuthentication(authentication);
       }
     }
